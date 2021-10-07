@@ -16,6 +16,26 @@ var gameData = {
 	player2RevealCard: -1
 }
 
+var player1GameData = {
+	turn: 1,
+	round: 1,
+	reveal: false,
+	player1PlayCard: -1,
+	player1RevealCard: -1,
+	player2PlayCard: -1,
+	player2RevealCard: -1
+}
+
+var player2GameData = {
+	turn: 1,
+	round: 1,
+	reveal: false,
+	player1PlayCard: -1,
+	player1RevealCard: -1,
+	player2PlayCard: -1,
+	player2RevealCard: -1
+}
+
 var connectionData = {
 	lastPlayer1Poll: new Date().getTime(),
 	lastPlayer2Poll: new Date().getTime()
@@ -75,6 +95,66 @@ function initGame() {
 	gameData.player1Ready = false;
 	gameData.player2Ready = false;
 }
+
+app.get("/sendGameData/:userid/:turn/:round/:reveal/:player1PlayCard/:player1RevealCard/:player2PlayCard/:player2RevealCard", (req, res) => {
+	
+	var userid = req.params["userid"];
+	if (gameData.player1UID == userid)
+	{
+		player1GameData.turn = req.params["turn"];
+		player1GameData.round = req.params["round"];
+		player1GameData.reveal = req.params["reveal"] == "true";
+		player1GameData.player1PlayCard = req.params["player1PlayCard"];
+		player1GameData.player1RevealCard = req.params["player1RevealCard"];
+		player1GameData.player2PlayCard = req.params["player2PlayCard"];
+		player1GameData.player2RevealCard = req.params["player2RevealCard"];
+	}
+	else if (gameData.player2UID == userid)
+	{
+		player2GameData.turn = req.params["turn"];
+		player2GameData.round = req.params["round"];
+		player2GameData.reveal = req.params["reveal"] == "true";
+		player2GameData.player1PlayCard = req.params["player1PlayCard"];
+		player2GameData.player1RevealCard = req.params["player1RevealCard"];
+		player2GameData.player2PlayCard = req.params["player2PlayCard"];
+		player2GameData.player2RevealCard = req.params["player2RevealCard"];
+	}
+	
+	//check that players and server are in sync before proceeding
+	if (player1GameData.turn == player2GameData.turn && player2GameData.turn == gameData.turn &&
+		player1GameData.reveal == player2GameData.reveal &&
+	    player1GameData.player1PlayCard == player2GameData.player1PlayCard && player2GameData.player1PlayCard == gameData.player1PlayCard &&
+		player1GameData.player1RevealCard == player2GameData.player1RevealCard && player2GameData.player1RevealCard == gameData.player1RevealCard &&
+		player1GameData.player2PlayCard == player2GameData.player2PlayCard && player2GameData.player2PlayCard == gameData.player2PlayCard &&
+		player1GameData.player2RevealCard == player2GameData.player2RevealCard && player2GameData.player2RevealCard == gameData.player2RevealCard)
+	{
+		if (gameData.reveal == false)
+		{
+			//both players have made their selection
+			if (gameData.player1PlayCard != -1 && gameData.player2PlayCard != -1)
+			{
+				gameData.reveal = true;
+				if (gameData.turn == 5 && gameData.round == 1)
+					console.log("End of round");
+				else if (gameData.turn == 3 && gameData.round == 2)
+					console.log("End of game");
+				else
+					console.log("Reveal phase");
+			}
+		}
+		else
+		{
+			//both players have made their selection
+			if (gameData.player1RevealCard != -1 && gameData.player2RevealCard != -1)
+			{
+				gameData.reveal = false;
+				console.log("Play phase");
+				gameData.turn++;
+				console.log("Turn: " + gameData.turn);
+			}
+		}
+	}
+});
 
 app.get("/setUserID/:userid", (req, res) => {
 	
@@ -139,17 +219,7 @@ app.get("/setPlayCard/:userid/:playCard", (req, res) => {
 		console.log("User " + gameData.player2UID + " played card " + gameData.player2PlayCard);		
 	}
 	
-	//both players have made their selection
-	if (gameData.player1PlayCard != -1 && gameData.player2PlayCard != -1)
-	{
-		gameData.reveal = true;
-		if (gameData.turn == 5 && gameData.round == 1)
-			console.log("End of round");
-		else if (gameData.turn == 3 && gameData.round == 2)
-			console.log("End of game");
-		else
-			console.log("Reveal phase");
-	}
+	
 	
 });
 
@@ -169,14 +239,7 @@ app.get("/setRevealCard/:userid/:revealCard", (req, res) => {
 		console.log("User " + gameData.player2UID + " revealed card " + gameData.player2RevealCard);		
 	}
 	
-	//both players have made their selection
-	if (gameData.player1RevealCard != -1 && gameData.player2RevealCard != -1)
-	{
-		gameData.reveal = false;
-		console.log("Play phase");
-		gameData.turn++;
-		console.log("Turn: " + gameData.turn);
-	}
+	
 	
 });
 
