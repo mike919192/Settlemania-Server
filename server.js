@@ -1,8 +1,12 @@
 // This is the entry point for our whole application
 
-var express = require("express");
+const express = require("express");
 
-var app = express();
+const app = express();
+
+const cors = require('cors');
+
+app.use(cors());
 
 var gameData = {
 	player1UID: "",
@@ -154,6 +158,7 @@ app.get("/sendGameData/:userid/:turn/:round/:reveal/:player1PlayCard/:player1Rev
 			}
 		}
 	}
+	res.json();
 });
 
 app.get("/setUserID/:userid", (req, res) => {
@@ -219,7 +224,7 @@ app.get("/setPlayCard/:userid/:playCard", (req, res) => {
 		console.log("User " + gameData.player2UID + " played card " + gameData.player2PlayCard);		
 	}
 	
-	
+	res.json();
 	
 });
 
@@ -239,7 +244,7 @@ app.get("/setRevealCard/:userid/:revealCard", (req, res) => {
 		console.log("User " + gameData.player2UID + " revealed card " + gameData.player2RevealCard);		
 	}
 	
-	
+	res.json();
 	
 });
 
@@ -275,6 +280,8 @@ app.get("/setReady/:userid", (req, res) => {
 		initGame();
 		shuffleDeck();
 	}
+	
+	res.json();
 });
 
 app.get("/gamedata/:userid", (req, res) => {
