@@ -1,6 +1,6 @@
 {
   "name": "settlemania-server",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Server for Settlemania multiplayer",
   "main": "server.js",
   "repository": "github:mike919192/Settlemania-Server.git",
@@ -11,6 +11,7 @@
   "author": "Mike Bloom",
   "license": "GPL-3.0-or-later",
   "dependencies": {
+    "compression": "^1.7.4",
     "cors": "^2.8.5",
     "express": "^4.17.1"
   }

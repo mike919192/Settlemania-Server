@@ -41,6 +41,12 @@ build/Release
 node_modules/
 jspm_packages/
 
+# Dont include certs
+certs/
+
+# Dont include the client app
+client/
+
 # TypeScript v1 declaration files
 typings/
 

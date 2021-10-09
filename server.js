@@ -1,12 +1,28 @@
 // This is the entry point for our whole application
 
-const express = require("express");
+var fs = require('fs');
+var https = require('https');
+var privateKey  = fs.readFileSync('certs/key.pem', 'utf8');
+var certificate = fs.readFileSync('certs/cert.pem', 'utf8');
 
+var credentials = {key: privateKey, cert: certificate};
+
+const express = require("express");
 const app = express();
 
+const compression = require('compression');
 const cors = require('cors');
 
+var serveCount = 0;
+
 app.use(cors());
+app.use(compression());
+
+var httpsServer = https.createServer(credentials, app);
+
+app.use(express.static(__dirname + "/client/", {
+	index: false
+}));
 
 var gameData = {
 	player1UID: "",
@@ -299,6 +315,13 @@ app.get("/gamedata/:userid", (req, res) => {
 	res.json(gameData);
 });
 
-app.listen( 8123, () => {
+app.get("/", (req, res) => {
+	serveCount++;
+	console.log("Content served to " + serveCount);
+	//res.setHeader('Content-Encoding', 'gzip');
+	res.sendFile(__dirname + "/client/index.html");
+});
+
+httpsServer.listen( 8123, () => {
 	console.log("Server has started!");
 });
