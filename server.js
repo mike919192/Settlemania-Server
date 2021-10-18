@@ -48,6 +48,7 @@ app.get("/sendGameData/:userid/:turn/:round/:reveal/:player1PlayCard/:player1Rev
 		player1GameData.player1RevealCard = req.params["player1RevealCard"];
 		player1GameData.player2PlayCard = req.params["player2PlayCard"];
 		player1GameData.player2RevealCard = req.params["player2RevealCard"];
+		res.json();
 	}
 	else if (connectionData.player2UID == userid)
 	{
@@ -58,6 +59,13 @@ app.get("/sendGameData/:userid/:turn/:round/:reveal/:player1PlayCard/:player1Rev
 		player2GameData.player1RevealCard = req.params["player1RevealCard"];
 		player2GameData.player2PlayCard = req.params["player2PlayCard"];
 		player2GameData.player2RevealCard = req.params["player2RevealCard"];
+		res.json();
+	}
+	else
+	{	
+		//user ID is not in this game
+		res.status(409).json({error: "You are not in this game"});
+		return;
 	}
 	
 	//check that players and server are in sync before proceeding
@@ -89,7 +97,7 @@ app.get("/sendGameData/:userid/:turn/:round/:reveal/:player1PlayCard/:player1Rev
 			}
 		}
 	}
-	res.json();
+	
 });
 
 app.get("/setUserID/:userid", (req, res) => {
@@ -100,16 +108,20 @@ app.get("/setUserID/:userid", (req, res) => {
 		connectionData.player1UID = req.params["userid"];
 		console.log("User " + connectionData.player1UID + " connected as player 1");
 		connectionData.lastPlayer1Poll = new Date().getTime();
+		res.json(connectionData);
 	}
 	else if (connectionData.player2UID == "")
 	{
 		connectionData.player2UID = req.params["userid"];
 		console.log("User " + connectionData.player2UID + " connected as player 2");
 		connectionData.lastPlayer2Poll = new Date().getTime();
+		res.json(connectionData);
 	}
-	
-	res.json(connectionData);
-	
+	else
+	{
+		//room is full
+		res.status(409).json({error: "Room is full"});
+	}	
 });
 
 // Update the count down every 1 second
@@ -133,10 +145,19 @@ var x = setInterval(function() {
 	}
 }, 1000);
 
-app.get("/deckData/", (req, res) => {
+app.get("/getDeckData/:userid", (req, res) => {
 	
-	res.json(deckData);
-	
+	var userid = req.params["userid"];
+	if (connectionData.player1UID == userid ||
+		connectionData.player2UID == userid)
+	{
+		res.json(deckData);
+	}
+	else
+	{	
+		//user ID is not in this game
+		res.status(409).json({error: "You are not in this game"});
+	}	
 });
 
 app.get("/setPlayCard/:userid/:playCard", (req, res) => {
@@ -147,15 +168,20 @@ app.get("/setPlayCard/:userid/:playCard", (req, res) => {
 		gameData.player1PlayCard = req.params["playCard"];
 		gameData.player1RevealCard = -1;
 		console.log("User " + connectionData.player1UID + " played card " + gameData.player1PlayCard);
+		res.json();
 	}
 	else if (connectionData.player2UID == userid)
 	{
 		gameData.player2PlayCard = req.params["playCard"];
 		gameData.player2RevealCard = -1;
-		console.log("User " + connectionData.player2UID + " played card " + gameData.player2PlayCard);		
+		console.log("User " + connectionData.player2UID + " played card " + gameData.player2PlayCard);
+		res.json();		
 	}
-	
-	res.json();
+	else
+	{	
+		//user ID is not in this game
+		res.status(409).json({error: "You are not in this game"});
+	}	
 	
 });
 
@@ -167,15 +193,20 @@ app.get("/setRevealCard/:userid/:revealCard", (req, res) => {
 		gameData.player1RevealCard = req.params["revealCard"];
 		gameData.player1PlayCard = -1;
 		console.log("User " + connectionData.player1UID + " revealed card " + gameData.player1RevealCard);
+		res.json();
 	}
 	else if (connectionData.player2UID == userid)
 	{
 		gameData.player2RevealCard = req.params["revealCard"];
 		gameData.player2PlayCard = -1;
-		console.log("User " + connectionData.player2UID + " revealed card " + gameData.player2RevealCard);		
+		console.log("User " + connectionData.player2UID + " revealed card " + gameData.player2RevealCard);
+		res.json();		
 	}
-	
-	res.json();
+	else
+	{	
+		//user ID is not in this game
+		res.status(409).json({error: "You are not in this game"});
+	}	
 	
 });
 
@@ -185,11 +216,19 @@ app.get("/setReady/:userid", (req, res) => {
 	{
 		gameData.player1Ready = true;
 		console.log("Player 1 is ready for next round");
+		res.json();
 	}
 	else if (connectionData.player2UID == userid)
 	{
 		gameData.player2Ready = true;
 		console.log("Player 2 is ready for next round");
+		res.json();
+	}
+	else
+	{	
+		//user ID is not in this game
+		res.status(409).json({error: "You are not in this game"});
+		return;
 	}
 	
 	//both players are ready for next round
@@ -208,26 +247,54 @@ app.get("/setReady/:userid", (req, res) => {
 	}
 	else if (gameData.player1Ready == true && gameData.player2Ready == true && gameData.round == 2)
 	{
+		console.log("Proceeding to next game");
 		gameData.InitGame();
 		deckData.ShuffleDeck();
 	}
 	
-	res.json();
+	
 });
 
-app.get("/gamedata/:userid", (req, res) => {
+app.get("/getGameData/:userid", (req, res) => {
 	
 	var userid = req.params["userid"];
 	
 	if (connectionData.player1UID == userid)
 	{
 		connectionData.lastPlayer1Poll = new Date().getTime();
+		res.json(gameData);
 	}
 	else if (connectionData.player2UID == userid)
 	{
 		connectionData.lastPlayer2Poll = new Date().getTime();
+		res.json(gameData);
 	}
-	res.json(gameData);
+	else
+	{	
+		//user ID is not in this game
+		res.status(409).json({error: "You are not in this game"});
+	}
+});
+
+app.get("/getConnectionData/:userid", (req, res) => {
+	
+	var userid = req.params["userid"];
+	
+	if (connectionData.player1UID == userid)
+	{
+		connectionData.lastPlayer1Poll = new Date().getTime();
+		res.json(connectionData);
+	}
+	else if (connectionData.player2UID == userid)
+	{
+		connectionData.lastPlayer2Poll = new Date().getTime();
+		res.json(connectionData);
+	}
+	else
+	{	
+		//user ID is not in this game
+		res.status(409).json({error: "You are not in this game"});
+	}	
 });
 
 app.get("/", (req, res) => {
